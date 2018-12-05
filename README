@@ -6,17 +6,27 @@ HAProxy as a loadbalacer can load balance using Round Robin or Consistent Hashin
 If serving request does not need any caching, then Round Robin distributes the request efficiently.
 But if use case needs caching, then Conisistent hashing should be used.
 Because:
-	1) Modulo based hashing just makes all the cache stale in cache of adding more server or taking out any server.
+	1) Modulo based hashing just makes all the cache stale when adding more server or taking out any server.
 	2) Adding a server in consistent hashing only affects the next neighbour.
+	3) Roud Robin just make local caches ineffective, as same request can land on any server.
+	
+So consistent hashing seems pretty solid till now.
 
-But consistent hashing fails when the data being accessed has hotness. Then all the request for hot data will hit one server only.
+But consistent hashing fails when the data being accessed has hotness. 
+Then all the request for hot data will hit one server only.
 
-So original person tried using round robin with servers having local and shared cache. But local cache was pretty ineffective. And the problem with hotness remain same as now the shared cache has become the bottleneck.
+So original person tried using round robin with servers having local and shared cache. 
+Server will lookup in local cache, and if not found, will lookup on shared cache, else will fetch the data from source, and write back to both loca and shared cache.
+But local cache is pretty ineffective due to round robin scheduling of request. 
+And the problem with hotness remain same as now the shared cache has become the bottleneck.
 
-Then original person, tried a modified approach. First hash of the URL takes to first server in consistent hash. If the load is in bounded limit, then use the server, else double hash the url and use another server, and continue the process till request is able to find a server which has less load.
+Then original person, tried a modified approach with consistent hashing. 
+First hash of the URL lands the request to a server in consistent hash. 
+If the load is in bounded limit, then use the server, else "double hash the request url" and then use the hash to find another
+server on consistent hash ring, and continue the process till request is able to find a server which has less load.
 
 This pretty much works with:
 Uniformly distributed load
 And Skewed load which has hotness issue.
 
-Pretty neat. 
+Pretty neat!! 
