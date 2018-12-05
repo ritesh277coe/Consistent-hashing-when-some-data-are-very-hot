@@ -1,0 +1,22 @@
+Notes from video https://www.youtube.com/watch?v=jk6oiBJxcaA&list=PLwbhGTqjr3LtWxc401hPWh9adQ87--iso&index=7
+Practical load balancing with consistent hashing
+
+HAProxy as a loadbalacer can load balance using Round Robin or Consistent Hashing.
+
+If serving request does not need any caching, then Round Robin distributes the request efficiently.
+But if use case needs caching, then Conisistent hashing should be used.
+Because:
+	1) Modulo based hashing just makes all the cache stale in cache of adding more server or taking out any server.
+	2) Adding a server in consistent hashing only affects the next neighbour.
+
+But consistent hashing fails when the data being accessed has hotness. Then all the request for hot data will hit one server only.
+
+So original person tried using round robin with servers having local and shared cache. But local cache was pretty ineffective. And the problem with hotness remain same as now the shared cache has become the bottleneck.
+
+Then original person, tried a modified approach. First hash of the URL takes to first server in consistent hash. If the load is in bounded limit, then use the server, else double hash the url and use another server, and continue the process till request is able to find a server which has less load.
+
+This pretty much works with:
+Uniformly distributed load
+And Skewed load which has hotness issue.
+
+Pretty neat. 
